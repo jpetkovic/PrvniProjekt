@@ -1,8 +1,13 @@
-// Minimal, dependency-free e-mail sender.
+// E-mail sender using Gmail SMTP via nodemailer.
 //
-// In production set RESEND_API_KEY and EMAIL_FROM to send real e-mails via the
-// Resend HTTP API (https://resend.com). Without an API key (e.g. local dev) the
-// message is logged to the console so the flow stays testable.
+// Set GMAIL_USER (the Gmail address) and GMAIL_APP_PASSWORD (a 16-char
+// Google "App password", NOT your normal password — requires 2FA enabled on
+// the account). Without them (e.g. local dev) the message is logged to the
+// console so the flow stays testable.
+//
+// App password: https://myaccount.google.com/apppasswords
+
+import nodemailer from "nodemailer";
 
 type SendArgs = {
   to: string;
@@ -11,31 +16,32 @@ type SendArgs = {
   text?: string;
 };
 
-export async function sendEmail({ to, subject, html, text }: SendArgs) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+const user = process.env.GMAIL_USER;
+const pass = process.env.GMAIL_APP_PASSWORD;
 
-  if (!apiKey) {
+let transporter: nodemailer.Transporter | null = null;
+
+function getTransporter() {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user, pass },
+    });
+  }
+  return transporter;
+}
+
+export async function sendEmail({ to, subject, html, text }: SendArgs) {
+  const from = process.env.EMAIL_FROM ?? `PrvniProjekt <${user ?? "noreply"}>`;
+
+  if (!user || !pass) {
     console.info(
-      `[email] RESEND_API_KEY not set — would send to ${to}\nSubject: ${subject}\n${text ?? html}`
+      `[email] GMAIL_USER/GMAIL_APP_PASSWORD not set — would send to ${to}\nFrom: ${from}\nSubject: ${subject}\n${text ?? html}`
     );
     return { delivered: false as const };
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ from, to, subject, html, text }),
-  });
-
-  if (!res.ok) {
-    const detail = await res.text();
-    throw new Error(`E-mail se nepodařilo odeslat: ${res.status} ${detail}`);
-  }
-
+  await getTransporter().sendMail({ from, to, subject, html, text });
   return { delivered: true as const };
 }
 

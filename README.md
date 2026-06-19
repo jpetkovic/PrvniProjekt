@@ -42,8 +42,9 @@ ověří připojení k databázi.
 | `DATABASE_URL` | Pooled connection string z Neonu (host obsahuje `-pooler`).    |
 | `DIRECT_URL`   | Přímý connection string z Neonu (používá ho Prisma Migrate).   |
 | `SESSION_SECRET` | Tajný klíč pro podpis session cookie (`openssl rand -hex 32`). |
-| `RESEND_API_KEY` | API klíč [Resend](https://resend.com) pro odesílání e-mailů. Bez něj se ověřovací odkaz jen vypíše do konzole (dev). |
-| `EMAIL_FROM`   | Odesílatel ověřovacích e-mailů, např. `PrvniProjekt <onboarding@resend.dev>`. |
+| `GMAIL_USER`   | Gmail adresa, ze které se odesílá (např. `petkovic.jiri@gmail.com`). |
+| `GMAIL_APP_PASSWORD` | 16místné [App password](https://myaccount.google.com/apppasswords) Googlu (vyžaduje 2FA). Bez něj se odkaz jen vypíše do konzole (dev). |
+| `EMAIL_FROM`   | Odesílatel ověřovacích e-mailů, např. `PrvniProjekt <petkovic.jiri@gmail.com>`. |
 
 ## Ověření e-mailu při registraci
 
@@ -53,8 +54,12 @@ ověří připojení k databázi.
 3. Po kliknutí se nastaví `emailVerified` a uživatel je přesměrován na úvod.
 4. **Přihlásit se lze až po potvrzení** — login neověřeného účtu vrací chybu.
 
-> V dev režimu (bez `RESEND_API_KEY`) se odkaz vypíše do terminálu, kde běží
+> V dev režimu (bez `GMAIL_APP_PASSWORD`) se odkaz vypíše do terminálu, kde běží
 > `npm run dev` — zkopíruj ho do prohlížeče.
+>
+> E-maily se odesílají přes **Gmail SMTP** (`nodemailer`). Potřebuješ
+> [App password](https://myaccount.google.com/apppasswords) (ne běžné heslo) —
+> vyžaduje zapnuté dvoufázové ověření na Google účtu.
 
 ## Užitečné skripty
 
