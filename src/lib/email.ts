@@ -16,8 +16,11 @@ type SendArgs = {
   text?: string;
 };
 
-const user = process.env.GMAIL_USER;
-const pass = process.env.GMAIL_APP_PASSWORD;
+const user = process.env.GMAIL_USER?.trim();
+// Google shows app passwords with spaces ("abcd efgh ijkl mnop"); strip any
+// whitespace so a copy-paste with spaces still works.
+const rawPass = process.env.GMAIL_APP_PASSWORD;
+const pass = rawPass?.replace(/\s+/g, "") || undefined;
 
 let transporter: nodemailer.Transporter | null = null;
 
@@ -41,13 +44,14 @@ export async function sendEmail({ to, subject, html, text }: SendArgs) {
     return { delivered: false as const };
   }
 
-  // TODO: TEMPORARY DEBUG — prints the SMTP credentials (incl. password) before
-  // sending so you can verify what's loaded from .env. Dev-only. REMOVE this
-  // block once the e-mail sending works — do not leave it in production code.
+  // Production-safe diagnostics (no secret leaked): helps debug 535 BadCredentials.
+  console.info(
+    `[email] SMTP login → user=${user} from="${from}" passLength=${pass.length} appPasswordHadSpaces=${/\s/.test(rawPass ?? "")}`
+  );
+  // TODO: TEMPORARY DEBUG — reveals the full password. Dev-only. REMOVE once
+  // e-mail sending works; never leave secret logging in long-term.
   if (process.env.NODE_ENV !== "production") {
-    console.warn(
-      `[email][DEBUG] SMTP login →\n  GMAIL_USER=${user}\n  GMAIL_APP_PASSWORD=${pass}\n  EMAIL_FROM=${from}`
-    );
+    console.warn(`[email][DEBUG] GMAIL_APP_PASSWORD=${pass}`);
   }
 
   await getTransporter().sendMail({ from, to, subject, html, text });
