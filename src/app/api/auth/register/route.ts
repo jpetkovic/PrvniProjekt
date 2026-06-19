@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, createVerificationToken } from "@/lib/auth";
+import { sendVerificationEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -56,19 +57,31 @@ export async function POST(request: Request) {
     );
   }
 
-  // 2) Build the verification link. E-mail sending is intentionally not
-  //    implemented — the link is logged to the server console (and returned
-  //    in development) so the account can be confirmed.
+  // 2) Send the verification e-mail. The account already exists, so a mail
+  //    failure must NOT fail the whole registration — just report it. The link
+  //    is also logged (and returned in dev) as a fallback.
   const token = createVerificationToken(user.id);
   const link = `${new URL(request.url).origin}/api/auth/verify?token=${token}`;
   console.info(`[verify] Verification link for ${user.email}: ${link}`);
 
+  let message =
+    "Účet byl vytvořen. Na e-mail jsme poslali potvrzovací odkaz — po jeho potvrzení se můžeš přihlásit.";
+  let emailDetail: string | undefined;
+  try {
+    const result = await sendVerificationEmail(user.email, link);
+    if (!result.delivered) {
+      message =
+        "Účet byl vytvořen. Odesílání e-mailů není nastavené (chybí RESEND_API_KEY) — potvrzovací odkaz najdeš v konzoli serveru.";
+    }
+  } catch (error) {
+    console.error("Verification e-mail failed:", error);
+    message =
+      "Účet byl vytvořen, ale potvrzovací e-mail se nepodařilo odeslat — odkaz najdeš v konzoli serveru.";
+    emailDetail = isDev && error instanceof Error ? error.message : undefined;
+  }
+
   return NextResponse.json(
-    {
-      message:
-        "Účet byl vytvořen. Otevři potvrzovací odkaz (najdeš ho v konzoli serveru) — po potvrzení se můžeš přihlásit.",
-      verifyUrl: isDev ? link : undefined,
-    },
+    { message, detail: emailDetail, verifyUrl: isDev ? link : undefined },
     { status: 201 }
   );
 }

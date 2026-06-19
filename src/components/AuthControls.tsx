@@ -86,9 +86,9 @@ export default function AuthControls() {
 
       if (mode === "register") {
         // No auto-login — the user must confirm their e-mail first.
-        setNotice(
-          data.message ?? "Účet byl vytvořen. Potvrď účet z ověřovacího odkazu."
-        );
+        const base =
+          data.message ?? "Účet byl vytvořen. Potvrď účet z ověřovacího odkazu.";
+        setNotice(data.detail ? `${base} (${data.detail})` : base);
         setVerifyUrl(data.verifyUrl ?? null);
         setMode("login");
         setPassword("");

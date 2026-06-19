@@ -42,18 +42,23 @@ ověří připojení k databázi.
 | `DATABASE_URL` | Pooled connection string z Neonu (host obsahuje `-pooler`).    |
 | `DIRECT_URL`   | Přímý connection string z Neonu (používá ho Prisma Migrate).   |
 | `SESSION_SECRET` | Tajný klíč pro podpis session cookie (`openssl rand -hex 32`). |
+| `RESEND_API_KEY` | API klíč [Resend](https://resend.com) pro odesílání e-mailů. Bez něj se odkaz jen vypíše do konzole (dev). |
+| `EMAIL_FROM`   | Odesílatel ověřovacích e-mailů, např. `PrvniProjekt <onboarding@resend.dev>`. |
 
-## Ověření účtu při registraci
+## Ověření e-mailu při registraci
 
 1. Uživatel se zaregistruje → v tabulce `User` vznikne záznam s `emailVerified = NULL`.
-2. Vygeneruje se potvrzovací odkaz `…/api/auth/verify?token=…`
-   (24h platnost, HMAC-podepsaný token). **E-mail se neodesílá** — odkaz se
-   vypíše do konzole serveru (a ve vývoji se vrátí i do UI dialogu).
-3. Po otevření odkazu se nastaví `emailVerified` a uživatel je přesměrován na úvod.
+2. Na jeho adresu se přes [Resend](https://resend.com) odešle e-mail s odkazem
+   `…/api/auth/verify?token=…` (24h platnost, HMAC-podepsaný token).
+3. Po kliknutí se nastaví `emailVerified` a uživatel je přesměrován na úvod.
 4. **Přihlásit se lze až po potvrzení** — login neověřeného účtu vrací chybu.
 
-> Odkaz najdeš v logu serveru na řádku `[verify] Verification link for …`
-> (lokálně v terminálu `npm run dev`, na Vercelu ve Function Logs).
+> Bez `RESEND_API_KEY` se e-mail neodešle a odkaz se vypíše do logu serveru
+> (`[verify] Verification link for …`) — lokálně v terminálu `npm run dev`,
+> na Vercelu ve Function Logs. Ve vývoji se odkaz vrátí i do UI dialogu.
+>
+> `EMAIL_FROM` musí být na **ověřené doméně** v Resendu. Pro rychlý test funguje
+> `onboarding@resend.dev`, ale doručí jen na tvou vlastní (v Resendu ověřenou) adresu.
 
 ## Užitečné skripty
 
