@@ -41,6 +41,20 @@ ověří připojení k databázi.
 | -------------- | -------------------------------------------------------------- |
 | `DATABASE_URL` | Pooled connection string z Neonu (host obsahuje `-pooler`).    |
 | `DIRECT_URL`   | Přímý connection string z Neonu (používá ho Prisma Migrate).   |
+| `SESSION_SECRET` | Tajný klíč pro podpis session cookie (`openssl rand -hex 32`). |
+| `RESEND_API_KEY` | API klíč [Resend](https://resend.com) pro odesílání e-mailů. Bez něj se ověřovací odkaz jen vypíše do konzole (dev). |
+| `EMAIL_FROM`   | Odesílatel ověřovacích e-mailů, např. `PrvniProjekt <onboarding@resend.dev>`. |
+
+## Ověření e-mailu při registraci
+
+1. Uživatel se zaregistruje → v tabulce `User` vznikne záznam s `emailVerified = NULL`.
+2. Na jeho adresu se odešle e-mail s odkazem `…/api/auth/verify?token=…`
+   (24h platnost, HMAC-podepsaný token).
+3. Po kliknutí se nastaví `emailVerified` a uživatel je přesměrován na úvod.
+4. **Přihlásit se lze až po potvrzení** — login neověřeného účtu vrací chybu.
+
+> V dev režimu (bez `RESEND_API_KEY`) se odkaz vypíše do terminálu, kde běží
+> `npm run dev` — zkopíruj ho do prohlížeče.
 
 ## Užitečné skripty
 

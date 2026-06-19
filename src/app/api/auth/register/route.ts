@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { hashPassword } from "@/lib/auth";
-import { setSession } from "@/lib/session";
+import { hashPassword, createVerificationToken } from "@/lib/auth";
+import { sendVerificationEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -29,12 +29,23 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Create the user as NOT verified — login is blocked until confirmation.
     const user = await prisma.user.create({
       data: { email, name, passwordHash: hashPassword(password) },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true },
     });
-    await setSession(user.id);
-    return NextResponse.json({ user }, { status: 201 });
+
+    const token = createVerificationToken(user.id);
+    const link = `${new URL(request.url).origin}/api/auth/verify?token=${token}`;
+    await sendVerificationEmail(user.email, link);
+
+    return NextResponse.json(
+      {
+        message:
+          "Účet byl vytvořen. Na e-mail jsme poslali potvrzovací odkaz — po jeho potvrzení se můžeš přihlásit.",
+      },
+      { status: 201 }
+    );
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

@@ -15,7 +15,9 @@ export default function AuthControls() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [banner, setBanner] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -23,11 +25,26 @@ export default function AuthControls() {
       .then((d) => setUser(d.user))
       .catch(() => setUser(null))
       .finally(() => setLoaded(true));
+
+    // Show a banner after returning from the e-mail verification link.
+    const params = new URLSearchParams(window.location.search);
+    const verified = params.get("verified");
+    if (verified === "success") {
+      setBanner("E-mail byl potvrzen — teď se můžeš přihlásit.");
+    } else if (verified === "invalid") {
+      setBanner("Potvrzovací odkaz je neplatný nebo vypršel.");
+    } else if (verified === "error") {
+      setBanner("Potvrzení e-mailu se nezdařilo, zkus to prosím znovu.");
+    }
+    if (verified) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
   }, []);
 
   function openDialog(next: Mode) {
     setMode(next);
     setError(null);
+    setNotice(null);
     dialogRef.current?.showModal();
   }
 
@@ -35,12 +52,14 @@ export default function AuthControls() {
     dialogRef.current?.close();
     setPassword("");
     setError(null);
+    setNotice(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setNotice(null);
 
     const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
     const payload =
@@ -60,6 +79,18 @@ export default function AuthControls() {
         );
         return;
       }
+
+      if (mode === "register") {
+        // No auto-login — the user must confirm their e-mail first.
+        setNotice(
+          data.message ??
+            "Účet byl vytvořen. Potvrď e-mail z odkazu ve schránce."
+        );
+        setMode("login");
+        setPassword("");
+        return;
+      }
+
       setUser(data.user);
       closeDialog();
       setEmail("");
@@ -81,35 +112,43 @@ export default function AuthControls() {
   }
 
   return (
-    <div className="flex items-center gap-3">
-      {user ? (
-        <>
-          <span className="text-sm text-gray-600 dark:text-gray-300">
-            Přihlášen jako <strong>{user.name ?? user.email}</strong>
-          </span>
-          <button
-            onClick={handleLogout}
-            className="rounded-full border border-black/10 px-4 py-1.5 text-sm transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
-          >
-            Odhlásit se
-          </button>
-        </>
-      ) : (
-        <>
-          <button
-            onClick={() => openDialog("login")}
-            className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
-          >
-            Přihlásit se
-          </button>
-          <button
-            onClick={() => openDialog("register")}
-            className="rounded-full border border-black/10 px-4 py-1.5 text-sm transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
-          >
-            Registrovat
-          </button>
-        </>
+    <div className="flex flex-col items-center gap-3">
+      {banner && (
+        <p className="rounded-lg border border-black/10 bg-black/5 px-4 py-2 text-sm dark:border-white/15 dark:bg-white/10">
+          {banner}
+        </p>
       )}
+
+      <div className="flex items-center gap-3">
+        {user ? (
+          <>
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              Přihlášen jako <strong>{user.name ?? user.email}</strong>
+            </span>
+            <button
+              onClick={handleLogout}
+              className="rounded-full border border-black/10 px-4 py-1.5 text-sm transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
+            >
+              Odhlásit se
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => openDialog("login")}
+              className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            >
+              Přihlásit se
+            </button>
+            <button
+              onClick={() => openDialog("register")}
+              className="rounded-full border border-black/10 px-4 py-1.5 text-sm transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
+            >
+              Registrovat
+            </button>
+          </>
+        )}
+      </div>
 
       <dialog
         ref={dialogRef}
@@ -158,6 +197,9 @@ export default function AuthControls() {
 
           {error && (
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          )}
+          {notice && (
+            <p className="text-sm text-green-700 dark:text-green-400">{notice}</p>
           )}
 
           <button

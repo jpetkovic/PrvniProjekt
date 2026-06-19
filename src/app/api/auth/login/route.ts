@@ -33,6 +33,17 @@ export async function POST(request: Request) {
     );
   }
 
+  // Block login until the e-mail address has been confirmed.
+  if (!user.emailVerified) {
+    return NextResponse.json(
+      {
+        error:
+          "E-mail zatím není potvrzený. Zkontroluj si schránku a klikni na potvrzovací odkaz.",
+      },
+      { status: 403 }
+    );
+  }
+
   await setSession(user.id);
   return NextResponse.json({
     user: { id: user.id, email: user.email, name: user.name, role: user.role },

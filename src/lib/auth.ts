@@ -33,12 +33,41 @@ function sign(value: string): string {
 }
 
 export function createSessionToken(userId: string): string {
-  const exp = Date.now() + SESSION_MAX_AGE * 1000;
-  const payload = b64url(JSON.stringify({ uid: userId, exp }));
-  return `${payload}.${sign(payload)}`;
+  return createSignedToken(userId, "session", SESSION_MAX_AGE);
 }
 
 export function verifySessionToken(token: string | undefined): string | null {
+  return verifySignedToken(token, "session");
+}
+
+// --- Email verification token (HMAC-signed, stateless) ---
+
+export const VERIFICATION_MAX_AGE = 60 * 60 * 24; // 24 hours
+
+export function createVerificationToken(userId: string): string {
+  return createSignedToken(userId, "verify", VERIFICATION_MAX_AGE);
+}
+
+export function verifyVerificationToken(token: string | undefined): string | null {
+  return verifySignedToken(token, "verify");
+}
+
+// --- Shared signed-token helpers ---
+
+function createSignedToken(
+  uid: string,
+  purpose: string,
+  maxAgeSec: number
+): string {
+  const exp = Date.now() + maxAgeSec * 1000;
+  const payload = b64url(JSON.stringify({ uid, exp, purpose }));
+  return `${payload}.${sign(payload)}`;
+}
+
+function verifySignedToken(
+  token: string | undefined,
+  purpose: string
+): string | null {
   if (!token) return null;
   const [payload, sig] = token.split(".");
   if (!payload || !sig) return null;
@@ -51,11 +80,13 @@ export function verifySessionToken(token: string | undefined): string | null {
   }
 
   try {
-    const { uid, exp } = JSON.parse(
+    const parsed = JSON.parse(
       Buffer.from(payload, "base64url").toString()
-    ) as { uid: string; exp: number };
-    if (typeof exp !== "number" || Date.now() > exp) return null;
-    return uid;
+    ) as { uid: string; exp: number; purpose?: string };
+    if (typeof parsed.exp !== "number" || Date.now() > parsed.exp) return null;
+    // Reject tokens minted for a different purpose.
+    if ((parsed.purpose ?? "session") !== purpose) return null;
+    return parsed.uid;
   } catch {
     return null;
   }
