@@ -41,6 +41,15 @@ export async function sendEmail({ to, subject, html, text }: SendArgs) {
     return { delivered: false as const };
   }
 
+  // TODO: TEMPORARY DEBUG — prints the SMTP credentials (incl. password) before
+  // sending so you can verify what's loaded from .env. Dev-only. REMOVE this
+  // block once the e-mail sending works — do not leave it in production code.
+  if (process.env.NODE_ENV !== "production") {
+    console.warn(
+      `[email][DEBUG] SMTP login →\n  GMAIL_USER=${user}\n  GMAIL_APP_PASSWORD=${pass}\n  EMAIL_FROM=${from}`
+    );
+  }
+
   await getTransporter().sendMail({ from, to, subject, html, text });
   return { delivered: true as const };
 }
