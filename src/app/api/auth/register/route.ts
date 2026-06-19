@@ -28,24 +28,15 @@ export async function POST(request: Request) {
     );
   }
 
+  const isDev = process.env.NODE_ENV !== "production";
+
+  // 1) Create the user as NOT verified — login is blocked until confirmation.
+  let user: { id: string; email: string };
   try {
-    // Create the user as NOT verified — login is blocked until confirmation.
-    const user = await prisma.user.create({
+    user = await prisma.user.create({
       data: { email, name, passwordHash: hashPassword(password) },
       select: { id: true, email: true },
     });
-
-    const token = createVerificationToken(user.id);
-    const link = `${new URL(request.url).origin}/api/auth/verify?token=${token}`;
-    await sendVerificationEmail(user.email, link);
-
-    return NextResponse.json(
-      {
-        message:
-          "Účet byl vytvořen. Na e-mail jsme poslali potvrzovací odkaz — po jeho potvrzení se můžeš přihlásit.",
-      },
-      { status: 201 }
-    );
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -60,12 +51,37 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: "Registrace se nezdařila",
-        detail:
-          process.env.NODE_ENV !== "production" && error instanceof Error
-            ? error.message
-            : undefined,
+        detail: isDev && error instanceof Error ? error.message : undefined,
       },
       { status: 500 }
+    );
+  }
+
+  // 2) Send the verification e-mail. The account already exists, so a mail
+  //    failure must NOT fail the whole registration — just report it.
+  const token = createVerificationToken(user.id);
+  const link = `${new URL(request.url).origin}/api/auth/verify?token=${token}`;
+  try {
+    const result = await sendVerificationEmail(user.email, link);
+    return NextResponse.json(
+      {
+        message: result.delivered
+          ? "Účet byl vytvořen. Na e-mail jsme poslali potvrzovací odkaz — po jeho potvrzení se můžeš přihlásit."
+          : "Účet byl vytvořen. Odesílání e-mailů není nastavené (chybí GMAIL_APP_PASSWORD) — potvrzovací odkaz najdeš v konzoli serveru.",
+        emailDelivered: result.delivered,
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Verification e-mail failed:", error);
+    return NextResponse.json(
+      {
+        message:
+          "Účet byl vytvořen, ale potvrzovací e-mail se nepodařilo odeslat. Odkaz najdeš v konzoli serveru nebo si nech e-mail poslat znovu.",
+        emailDelivered: false,
+        detail: isDev && error instanceof Error ? error.message : undefined,
+      },
+      { status: 201 }
     );
   }
 }
