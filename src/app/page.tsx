@@ -1,3 +1,5 @@
+import AuthControls from "@/components/AuthControls";
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 p-8">
@@ -9,6 +11,8 @@ export default function Home() {
           Prázdná webová aplikace připravená k vývoji.
         </p>
       </div>
+
+      <AuthControls />
 
       <ul className="flex flex-wrap items-center justify-center gap-3 text-sm">
         {["Next.js", "React", "Prisma", "Postgres (Neon)", "Vercel", "GitHub"].map(
