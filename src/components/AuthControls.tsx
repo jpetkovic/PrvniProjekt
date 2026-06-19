@@ -54,7 +54,10 @@ export default function AuthControls() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Něco se pokazilo");
+        setError(
+          [data.error, data.detail].filter(Boolean).join(": ") ||
+            "Něco se pokazilo"
+        );
         return;
       }
       setUser(data.user);

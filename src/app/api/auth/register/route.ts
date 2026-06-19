@@ -45,8 +45,15 @@ export async function POST(request: Request) {
         { status: 409 }
       );
     }
+    console.error("Register failed:", error);
     return NextResponse.json(
-      { error: "Registrace se nezdařila" },
+      {
+        error: "Registrace se nezdařila",
+        detail:
+          process.env.NODE_ENV !== "production" && error instanceof Error
+            ? error.message
+            : undefined,
+      },
       { status: 500 }
     );
   }
