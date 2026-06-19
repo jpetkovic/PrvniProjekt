@@ -1,0 +1,24 @@
+// Prisma schema
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Pooled connection (Neon) used by the application at runtime.
+  url       = env("DATABASE_URL")
+  // Direct connection used for migrations.
+  directUrl = env("DIRECT_URL")
+}
+
+// Example model — remove or adapt to your needs.
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
