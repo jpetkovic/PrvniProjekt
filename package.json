@@ -15,7 +15,6 @@
   "dependencies": {
     "@prisma/client": "^6.2.1",
     "next": "^15.1.6",
-    "nodemailer": "^6.9.16",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -23,7 +22,6 @@
     "@eslint/eslintrc": "^3.2.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^20.17.16",
-    "@types/nodemailer": "^6.4.17",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "eslint": "^9.19.0",

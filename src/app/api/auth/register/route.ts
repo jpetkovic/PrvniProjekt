@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, createVerificationToken } from "@/lib/auth";
-import { sendVerificationEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -57,31 +56,19 @@ export async function POST(request: Request) {
     );
   }
 
-  // 2) Send the verification e-mail. The account already exists, so a mail
-  //    failure must NOT fail the whole registration — just report it.
+  // 2) Build the verification link. E-mail sending is intentionally not
+  //    implemented — the link is logged to the server console (and returned
+  //    in development) so the account can be confirmed.
   const token = createVerificationToken(user.id);
   const link = `${new URL(request.url).origin}/api/auth/verify?token=${token}`;
-  try {
-    const result = await sendVerificationEmail(user.email, link);
-    return NextResponse.json(
-      {
-        message: result.delivered
-          ? "Účet byl vytvořen. Na e-mail jsme poslali potvrzovací odkaz — po jeho potvrzení se můžeš přihlásit."
-          : "Účet byl vytvořen. Odesílání e-mailů není nastavené (chybí GMAIL_APP_PASSWORD) — potvrzovací odkaz najdeš v konzoli serveru.",
-        emailDelivered: result.delivered,
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error("Verification e-mail failed:", error);
-    return NextResponse.json(
-      {
-        message:
-          "Účet byl vytvořen, ale potvrzovací e-mail se nepodařilo odeslat. Odkaz najdeš v konzoli serveru nebo si nech e-mail poslat znovu.",
-        emailDelivered: false,
-        detail: isDev && error instanceof Error ? error.message : undefined,
-      },
-      { status: 201 }
-    );
-  }
+  console.info(`[verify] Verification link for ${user.email}: ${link}`);
+
+  return NextResponse.json(
+    {
+      message:
+        "Účet byl vytvořen. Otevři potvrzovací odkaz (najdeš ho v konzoli serveru) — po potvrzení se můžeš přihlásit.",
+      verifyUrl: isDev ? link : undefined,
+    },
+    { status: 201 }
+  );
 }

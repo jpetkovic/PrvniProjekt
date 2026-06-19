@@ -16,6 +16,7 @@ export default function AuthControls() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [verifyUrl, setVerifyUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
 
@@ -45,6 +46,7 @@ export default function AuthControls() {
     setMode(next);
     setError(null);
     setNotice(null);
+    setVerifyUrl(null);
     dialogRef.current?.showModal();
   }
 
@@ -53,6 +55,7 @@ export default function AuthControls() {
     setPassword("");
     setError(null);
     setNotice(null);
+    setVerifyUrl(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -60,6 +63,7 @@ export default function AuthControls() {
     setSubmitting(true);
     setError(null);
     setNotice(null);
+    setVerifyUrl(null);
 
     const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
     const payload =
@@ -82,9 +86,10 @@ export default function AuthControls() {
 
       if (mode === "register") {
         // No auto-login — the user must confirm their e-mail first.
-        const base =
-          data.message ?? "Účet byl vytvořen. Potvrď e-mail z odkazu ve schránce.";
-        setNotice(data.detail ? `${base} (${data.detail})` : base);
+        setNotice(
+          data.message ?? "Účet byl vytvořen. Potvrď účet z ověřovacího odkazu."
+        );
+        setVerifyUrl(data.verifyUrl ?? null);
         setMode("login");
         setPassword("");
         return;
@@ -199,6 +204,14 @@ export default function AuthControls() {
           )}
           {notice && (
             <p className="text-sm text-green-700 dark:text-green-400">{notice}</p>
+          )}
+          {verifyUrl && (
+            <a
+              href={verifyUrl}
+              className="break-all text-sm text-blue-600 underline dark:text-blue-400"
+            >
+              Potvrdit účet (dev odkaz)
+            </a>
           )}
 
           <button
