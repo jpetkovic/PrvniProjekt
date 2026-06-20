@@ -1,4 +1,5 @@
 import AuthControls from "@/components/AuthControls";
+import TestEmailButton from "@/components/TestEmailButton";
 
 export default function Home() {
   return (
@@ -13,6 +14,8 @@ export default function Home() {
       </div>
 
       <AuthControls />
+
+      <TestEmailButton />
 
       <ul className="flex flex-wrap items-center justify-center gap-3 text-sm">
         {["Next.js", "React", "Prisma", "Postgres (Neon)", "Vercel", "GitHub"].map(
