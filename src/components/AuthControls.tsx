@@ -253,7 +253,9 @@ export default function AuthControls() {
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
               <path fill="none" d="M0 0h48v48H0z"/>
             </svg>
-            Pokračovat přes Google
+            {mode === "register"
+              ? "Registrovat přes Google"
+              : "Pokračovat přes Google"}
           </a>
 
           <div className="flex items-center justify-between text-sm">
