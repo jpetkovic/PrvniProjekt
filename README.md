@@ -44,6 +44,9 @@ ověří připojení k databázi.
 | `SESSION_SECRET` | Tajný klíč pro podpis session cookie (`openssl rand -hex 32`). |
 | `RESEND_API_KEY` | API klíč [Resend](https://resend.com) pro odesílání e-mailů. Bez něj se odkaz jen vypíše do konzole (dev). |
 | `EMAIL_FROM`   | Odesílatel ověřovacích e-mailů, např. `PrvniProjekt <onboarding@resend.dev>`. |
+| `GOOGLE_CLIENT_ID` | Client ID z [Google Cloud Console](https://console.cloud.google.com/apis/credentials) pro OAuth. |
+| `GOOGLE_CLIENT_SECRET` | Client Secret ze stejného OAuth 2.0 klienta. |
+| `NEXT_PUBLIC_BASE_URL` | Veřejná base URL aplikace bez lomítka, např. `https://tvoje-app.vercel.app`. |
 
 ## Ověření e-mailu při registraci
 
@@ -71,6 +74,19 @@ ověří připojení k databázi.
 | `npm run db:push`  | Synchronizuje schéma do DB bez migrací        |
 | `npm run db:migrate` | Vytvoří a aplikuje migraci                   |
 | `npm run db:studio`| Otevře Prisma Studio                          |
+
+## Přihlášení přes Google
+
+1. Otevři [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → **Create credentials → OAuth 2.0 Client ID**.
+2. Typ aplikace: **Web application**.
+3. Přidej Authorized redirect URIs:
+   - `http://localhost:3000/api/auth/google/callback` (lokální vývoj)
+   - `https://tvoje-domena.vercel.app/api/auth/google/callback` (produkce)
+4. Zkopíruj **Client ID** a **Client Secret** do `.env` (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`).
+5. Nastav `NEXT_PUBLIC_BASE_URL` na veřejnou URL aplikace.
+6. Aplikuj změny schématu: `npm run db:push`.
+
+Při přihlášení přes Google se automaticky vytvoří účet (pokud neexistuje) a e-mail se označí jako ověřený — ověřovací e-mail se neposílá.
 
 ## Nasazení na Vercel
 
