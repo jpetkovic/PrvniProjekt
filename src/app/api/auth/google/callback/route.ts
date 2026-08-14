@@ -28,8 +28,19 @@ export async function GET(request: Request) {
   // HTTPS base outside localhost — matches the redirect URI used at start.
   const base = getBaseUrl(request);
 
+  // A browser prefetch / link scanner can hit this callback twice. The first
+  // request consumes the one-time `oauth_state` cookie and the one-time
+  // authorization `code` (which Google then refuses to reuse), so the second
+  // request fails at state validation OR at the token exchange — even though
+  // the user is already signed in. Whenever we bail out, if a valid session
+  // already exists, report success instead of a misleading error.
+  const fail = async () =>
+    NextResponse.redirect(
+      `${base}/?login=${(await getCurrentUser()) ? "success" : "error"}`
+    );
+
   if (errorParam) {
-    return NextResponse.redirect(`${base}/?login=error`);
+    return fail();
   }
 
   // Validate CSRF state
@@ -38,18 +49,11 @@ export async function GET(request: Request) {
   cookieStore.delete("oauth_state");
 
   if (!state || state !== savedState) {
-    // The state cookie is one-time: browser prefetch / link scanners can hit
-    // this callback twice, and the first request already consumed the cookie
-    // and signed the user in. If a valid session already exists, treat this
-    // duplicate request as a success instead of a misleading CSRF error.
-    if (await getCurrentUser()) {
-      return NextResponse.redirect(`${base}/?login=success`);
-    }
-    return NextResponse.redirect(`${base}/?login=error`);
+    return fail();
   }
 
   if (!code) {
-    return NextResponse.redirect(`${base}/?login=error`);
+    return fail();
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID!;
@@ -73,7 +77,7 @@ export async function GET(request: Request) {
     tokens = await res.json() as GoogleTokenResponse;
     if (tokens.error) throw new Error(tokens.error);
   } catch {
-    return NextResponse.redirect(`${base}/?login=error`);
+    return fail();
   }
 
   // Fetch user info
@@ -84,11 +88,11 @@ export async function GET(request: Request) {
     });
     googleUser = await res.json() as GoogleUserInfo;
   } catch {
-    return NextResponse.redirect(`${base}/?login=error`);
+    return fail();
   }
 
   if (!googleUser.email) {
-    return NextResponse.redirect(`${base}/?login=error`);
+    return fail();
   }
 
   // Upsert user: connect Google account or create new one
