@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { setSession } from "@/lib/session";
+import { setSession, getCurrentUser } from "@/lib/session";
 import { getBaseUrl, googleRedirectUri } from "@/lib/oauth";
 
 export const runtime = "nodejs";
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   const base = getBaseUrl(request);
 
   if (errorParam) {
-    return NextResponse.redirect(`${base}/?verified=error`);
+    return NextResponse.redirect(`${base}/?login=error`);
   }
 
   // Validate CSRF state
@@ -38,11 +38,18 @@ export async function GET(request: Request) {
   cookieStore.delete("oauth_state");
 
   if (!state || state !== savedState) {
-    return NextResponse.redirect(`${base}/?verified=invalid`);
+    // The state cookie is one-time: browser prefetch / link scanners can hit
+    // this callback twice, and the first request already consumed the cookie
+    // and signed the user in. If a valid session already exists, treat this
+    // duplicate request as a success instead of a misleading CSRF error.
+    if (await getCurrentUser()) {
+      return NextResponse.redirect(`${base}/?login=success`);
+    }
+    return NextResponse.redirect(`${base}/?login=error`);
   }
 
   if (!code) {
-    return NextResponse.redirect(`${base}/?verified=error`);
+    return NextResponse.redirect(`${base}/?login=error`);
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID!;
@@ -66,7 +73,7 @@ export async function GET(request: Request) {
     tokens = await res.json() as GoogleTokenResponse;
     if (tokens.error) throw new Error(tokens.error);
   } catch {
-    return NextResponse.redirect(`${base}/?verified=error`);
+    return NextResponse.redirect(`${base}/?login=error`);
   }
 
   // Fetch user info
@@ -77,11 +84,11 @@ export async function GET(request: Request) {
     });
     googleUser = await res.json() as GoogleUserInfo;
   } catch {
-    return NextResponse.redirect(`${base}/?verified=error`);
+    return NextResponse.redirect(`${base}/?login=error`);
   }
 
   if (!googleUser.email) {
-    return NextResponse.redirect(`${base}/?verified=error`);
+    return NextResponse.redirect(`${base}/?login=error`);
   }
 
   // Upsert user: connect Google account or create new one
@@ -102,5 +109,5 @@ export async function GET(request: Request) {
   });
 
   await setSession(user.id);
-  return NextResponse.redirect(`${base}/?google=success`);
+  return NextResponse.redirect(`${base}/?login=success`);
 }

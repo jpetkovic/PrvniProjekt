@@ -42,14 +42,18 @@ export default function AuthControls() {
       window.history.replaceState({}, "", window.location.pathname);
     }
 
-    const google = params.get("google");
-    if (google === "success") {
-      window.history.replaceState({}, "", window.location.pathname);
-      // Refresh user after Google login redirect
+    const login = params.get("login");
+    if (login === "success") {
+      // Refresh the user after the Google login redirect.
       fetch("/api/auth/me")
         .then((r) => r.json())
         .then((d) => setUser(d.user))
         .catch(() => {});
+    } else if (login === "error") {
+      setBanner("Přihlášení přes Google se nezdařilo, zkus to prosím znovu.");
+    }
+    if (login) {
+      window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
 
