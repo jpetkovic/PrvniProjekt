@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { setSession } from "@/lib/session";
+import { getBaseUrl, googleRedirectUri } from "@/lib/oauth";
 
 export const runtime = "nodejs";
 
@@ -24,7 +25,8 @@ export async function GET(request: Request) {
   const state = searchParams.get("state");
   const errorParam = searchParams.get("error");
 
-  const base = process.env.NEXT_PUBLIC_BASE_URL ?? "";
+  // HTTPS base outside localhost — matches the redirect URI used at start.
+  const base = getBaseUrl(request);
 
   if (errorParam) {
     return NextResponse.redirect(`${base}/?verified=error`);
@@ -45,7 +47,7 @@ export async function GET(request: Request) {
 
   const clientId = process.env.GOOGLE_CLIENT_ID!;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
-  const redirectUri = `${base}/api/auth/google/callback`;
+  const redirectUri = googleRedirectUri(request);
 
   // Exchange code for tokens
   let tokens: GoogleTokenResponse;

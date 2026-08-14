@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
+import { googleRedirectUri } from "@/lib/oauth";
 
 export const runtime = "nodejs";
 
 const SCOPES = ["openid", "email", "profile"].join(" ");
 
-export async function GET() {
+export async function GET(request: Request) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) {
     return NextResponse.json(
@@ -25,7 +26,8 @@ export async function GET() {
     maxAge: 600, // 10 minutes
   });
 
-  const redirectUri = `${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/auth/google/callback`;
+  // Always an HTTPS callback URL outside localhost (Google requirement).
+  const redirectUri = googleRedirectUri(request);
 
   const params = new URLSearchParams({
     client_id: clientId,
