@@ -33,3 +33,9 @@ export async function getCurrentUser() {
     select: { id: true, email: true, name: true, role: true, createdAt: true },
   });
 }
+
+/** Returns the current user only if they have the ADMIN role, otherwise null. */
+export async function getCurrentAdmin() {
+  const user = await getCurrentUser();
+  return user?.role === "ADMIN" ? user : null;
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 type User = { id: string; email: string; name: string | null; role: string };
 type Mode = "login" | "register";
@@ -139,6 +140,14 @@ export default function AuthControls() {
             <span className="text-sm text-gray-600 dark:text-gray-300">
               Přihlášen jako <strong>{user.name ?? user.email}</strong>
             </span>
+            {user.role === "ADMIN" && (
+              <Link
+                href="/uzivatele"
+                className="rounded-full border border-black/10 px-4 py-1.5 text-sm transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
+              >
+                Uživatelé
+              </Link>
+            )}
             <button
               onClick={handleLogout}
               className="rounded-full border border-black/10 px-4 py-1.5 text-sm transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
