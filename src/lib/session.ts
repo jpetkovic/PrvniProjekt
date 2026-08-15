@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import {
   SESSION_COOKIE,
@@ -24,8 +24,17 @@ export async function clearSession() {
 }
 
 export async function getCurrentUser() {
+  // Web clients send the session in an httpOnly cookie; native/mobile clients
+  // (which have no cookie jar) send it as `Authorization: Bearer <token>`.
   const cookieStore = await cookies();
-  const userId = verifySessionToken(cookieStore.get(SESSION_COOKIE)?.value);
+  let token = cookieStore.get(SESSION_COOKIE)?.value;
+
+  if (!token) {
+    const auth = (await headers()).get("authorization");
+    if (auth?.startsWith("Bearer ")) token = auth.slice(7).trim();
+  }
+
+  const userId = verifySessionToken(token);
   if (!userId) return null;
 
   return prisma.user.findUnique({
