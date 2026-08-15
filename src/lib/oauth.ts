@@ -9,23 +9,44 @@
  * matches the HTTPS URI registered in the Google Cloud Console.
  */
 export function getBaseUrl(request: Request): string {
-  // 1) Explicit override wins — set this to your HTTPS domain in production.
-  const configured = process.env.APP_URL || process.env.NEXT_PUBLIC_BASE_URL;
-  if (configured) return forceHttps(configured.replace(/\/+$/, ""));
-
-  // 2) Otherwise derive from the incoming request headers.
+  // Locality of the actual incoming request.
   const headers = request.headers;
   const host =
     headers.get("x-forwarded-host") ??
     headers.get("host") ??
     new URL(request.url).host;
+  const requestIsLocal = isLocalHost(host);
 
-  const isLocal = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host);
-  if (isLocal) {
+  // 1) Explicit override — but only when its locality matches the request's.
+  //    This stops a leftover NEXT_PUBLIC_BASE_URL="http://localhost:3000" from
+  //    hijacking the redirect URI in production (it would cause the browser to
+  //    be sent to localhost after the Google consent screen — ERR_CONNECTION_
+  //    REFUSED). Same guard the other way for local dev.
+  const configuredRaw = process.env.APP_URL || process.env.NEXT_PUBLIC_BASE_URL;
+  if (configuredRaw) {
+    const configured = forceHttps(configuredRaw.replace(/\/+$/, ""));
+    if (isLocalHost(hostOf(configured)) === requestIsLocal) return configured;
+  }
+
+  // 2) Otherwise derive from the incoming request headers.
+  if (requestIsLocal) {
     const proto = headers.get("x-forwarded-proto")?.split(",")[0].trim() ?? "http";
     return `${proto}://${host}`;
   }
   return `https://${host}`;
+}
+
+function isLocalHost(host: string): boolean {
+  return /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(host);
+}
+
+/** Extract the host[:port] from a URL string, tolerating a missing scheme. */
+function hostOf(url: string): string {
+  try {
+    return new URL(url).host;
+  } catch {
+    return url.replace(/^[a-z]+:\/\//i, "").replace(/\/.*$/, "");
+  }
 }
 
 /** Upgrade a plain-HTTP URL to HTTPS unless it points at localhost. */
