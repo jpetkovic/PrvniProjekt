@@ -42,12 +42,13 @@ model Post {
 
 // Verze/buildy aplikace a jejich changelog.
 model SbbApp {
-  id        Int      @id @default(autoincrement())
-  build     String
-  datum     DateTime @default(now())
-  popisZmen String?  @map("popis_zmen")
+  id          Int      @id @default(autoincrement())
+  build       String
+  versionCode Int?     @map("version_code")
+  datum       DateTime @default(now())
+  popisZmen   String?  @map("popis_zmen")
   // Odkaz na APK soubor (ukládaný do složky "Soubory").
-  apkUrl    String?  @map("apk_url")
+  apkUrl      String?  @map("apk_url")
 
   @@map("SBB_apps")
 }

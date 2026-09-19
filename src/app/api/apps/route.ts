@@ -18,7 +18,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Přístup zamítnut" }, { status: 403 });
   }
 
-  let body: { build?: string; popisZmen?: string; apkUrl?: string };
+  let body: {
+    build?: string;
+    versionCode?: number;
+    popisZmen?: string;
+    apkUrl?: string;
+  };
   try {
     body = await request.json();
   } catch {
@@ -33,6 +38,8 @@ export async function POST(request: Request) {
   const app = await prisma.sbbApp.create({
     data: {
       build,
+      versionCode:
+        typeof body.versionCode === "number" ? body.versionCode : null,
       popisZmen: body.popisZmen?.trim() || null,
       apkUrl: body.apkUrl?.trim() || null,
     },

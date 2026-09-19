@@ -20,6 +20,7 @@ const dateFmt = new Intl.DateTimeFormat("cs-CZ", {
 export default function BuildsManager() {
   const [apps, setApps] = useState<App[]>([]);
   const [build, setBuild] = useState("");
+  const [versionCode, setVersionCode] = useState<number | null>(null);
   const [popisZmen, setPopisZmen] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [fileKey, setFileKey] = useState(0);
@@ -36,6 +37,7 @@ export default function BuildsManager() {
       const { versionName, versionCode } = await extractApkVersion(f);
       const detected = versionName ?? (versionCode ? String(versionCode) : null);
       if (detected) setBuild(detected);
+      setVersionCode(versionCode);
     } catch {
       /* ignore — user can fill it manually */
     } finally {
@@ -78,7 +80,7 @@ export default function BuildsManager() {
       const res = await fetch("/api/apps", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ build, popisZmen, apkUrl }),
+        body: JSON.stringify({ build, versionCode, popisZmen, apkUrl }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -87,6 +89,7 @@ export default function BuildsManager() {
       }
 
       setBuild("");
+      setVersionCode(null);
       setPopisZmen("");
       setFile(null);
       setFileKey((k) => k + 1); // remount the file input to clear it
