@@ -39,3 +39,13 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// Verze/buildy aplikace a jejich changelog.
+model SbbApp {
+  id        Int      @id @default(autoincrement())
+  build     String
+  datum     DateTime @default(now())
+  popisZmen String?  @map("popis_zmen")
+
+  @@map("SBB_apps")
+}
