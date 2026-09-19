@@ -10,13 +10,13 @@ export async function GET(request: Request) {
 
   const userId = verifyVerificationToken(token);
   if (!userId) {
-    return NextResponse.redirect(`${origin}/?verified=invalid`);
+    return NextResponse.redirect(`${origin}/app?verified=invalid`);
   }
 
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      return NextResponse.redirect(`${origin}/?verified=invalid`);
+      return NextResponse.redirect(`${origin}/app?verified=invalid`);
     }
     // Idempotent: re-clicking an already-used link is fine.
     if (!user.emailVerified) {
@@ -25,9 +25,9 @@ export async function GET(request: Request) {
         data: { emailVerified: new Date() },
       });
     }
-    return NextResponse.redirect(`${origin}/?verified=success`);
+    return NextResponse.redirect(`${origin}/app?verified=success`);
   } catch (error) {
     console.error("Verify failed:", error);
-    return NextResponse.redirect(`${origin}/?verified=error`);
+    return NextResponse.redirect(`${origin}/app?verified=error`);
   }
 }

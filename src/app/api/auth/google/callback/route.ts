@@ -36,7 +36,7 @@ export async function GET(request: Request) {
   // already exists, report success instead of a misleading error.
   const fail = async () =>
     NextResponse.redirect(
-      `${base}/?login=${(await getCurrentUser()) ? "success" : "error"}`
+      `${base}/app?login=${(await getCurrentUser()) ? "success" : "error"}`
     );
 
   if (errorParam) {
@@ -113,5 +113,5 @@ export async function GET(request: Request) {
   });
 
   await setSession(user.id);
-  return NextResponse.redirect(`${base}/?login=success`);
+  return NextResponse.redirect(`${base}/app?login=success`);
 }
