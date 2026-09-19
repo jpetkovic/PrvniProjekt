@@ -152,6 +152,14 @@ export default function AuthControls() {
                 Uživatelé
               </Link>
             )}
+            {user.role === "ADMIN" && (
+              <Link
+                href="/builds"
+                className="rounded-full border border-black/10 px-4 py-1.5 text-sm transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
+              >
+                Buildy
+              </Link>
+            )}
             <button
               onClick={handleLogout}
               className="rounded-full border border-black/10 px-4 py-1.5 text-sm transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
