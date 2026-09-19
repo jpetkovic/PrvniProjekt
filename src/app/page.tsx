@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getClientIp, BUILD_UPLOAD_IP } from "@/lib/session";
+import DownloadButton from "@/components/DownloadButton";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,12 +32,10 @@ export default async function Home() {
       <section className="z-10 flex flex-col items-center gap-3">
         {latest?.apkUrl ? (
           <>
-            <a
-              href={latest.apkUrl}
-              className="rounded-full bg-foreground px-8 py-4 text-base font-semibold text-background shadow-lg shadow-black/10 transition-transform hover:scale-[1.03]"
-            >
-              ⬇ Stáhnout pro Android
-            </a>
+            <DownloadButton
+              url={latest.apkUrl}
+              filename={`SBB-Counter-${latest.build}.apk`}
+            />
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Build <span className="font-mono font-medium">{latest.build}</span>
               {" · aktualizováno "}
