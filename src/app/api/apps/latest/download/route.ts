@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /**
  * Public: stable URL that always redirects to the latest APK in Blob storage.
@@ -18,9 +19,11 @@ export async function GET() {
   if (!latest?.apkUrl) {
     return NextResponse.json(
       { error: "Žádná verze není k dispozici" },
-      { status: 404 }
+      { status: 404, headers: { "Cache-Control": "no-store" } }
     );
   }
 
-  return NextResponse.redirect(latest.apkUrl, 307);
+  const res = NextResponse.redirect(latest.apkUrl, 307);
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 }
