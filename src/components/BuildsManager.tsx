@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { upload } from "@vercel/blob/client";
+import { extractApkVersion } from "@/lib/apk";
 
 type App = {
   id: number;
@@ -23,7 +24,24 @@ export default function BuildsManager() {
   const [file, setFile] = useState<File | null>(null);
   const [fileKey, setFileKey] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [detecting, setDetecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function handleFileChange(f: File | null) {
+    setFile(f);
+    if (!f) return;
+    // Try to read versionName from the APK and prefill the build field.
+    setDetecting(true);
+    try {
+      const { versionName, versionCode } = await extractApkVersion(f);
+      const detected = versionName ?? (versionCode ? String(versionCode) : null);
+      if (detected) setBuild(detected);
+    } catch {
+      /* ignore — user can fill it manually */
+    } finally {
+      setDetecting(false);
+    }
+  }
 
   async function load() {
     try {
@@ -117,10 +135,13 @@ export default function BuildsManager() {
             key={fileKey}
             type="file"
             accept=".apk,application/vnd.android.package-archive"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
             className="text-sm"
           />
         </label>
+        {detecting && (
+          <p className="text-xs text-gray-400">Zjišťuji verzi z APK…</p>
+        )}
 
         {error && (
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
