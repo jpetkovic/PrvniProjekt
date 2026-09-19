@@ -48,3 +48,20 @@ export async function getCurrentAdmin() {
   const user = await getCurrentUser();
   return user?.role === "ADMIN" ? user : null;
 }
+
+// Jen z této IP adresy (kromě administrátorů) lze přidávat/nahrávat buildy.
+export const BUILD_UPLOAD_IP = "91.219.240.10";
+
+/** Best-effort client IP from proxy headers (Vercel sets x-forwarded-for). */
+export async function getClientIp(): Promise<string> {
+  const h = await headers();
+  const fwd = h.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0].trim();
+  return h.get("x-real-ip")?.trim() ?? "";
+}
+
+/** Build management is allowed for ADMINs or requests from BUILD_UPLOAD_IP. */
+export async function canManageBuilds(): Promise<boolean> {
+  if (await getCurrentAdmin()) return true;
+  return (await getClientIp()) === BUILD_UPLOAD_IP;
+}

@@ -1,19 +1,19 @@
 import Link from "next/link";
-import { getCurrentAdmin } from "@/lib/session";
+import { canManageBuilds } from "@/lib/session";
 import BuildsManager from "@/components/BuildsManager";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function BuildsPage() {
-  const admin = await getCurrentAdmin();
+  const allowed = await canManageBuilds();
 
-  if (!admin) {
+  if (!allowed) {
     return (
       <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 p-8 text-center">
         <h1 className="text-2xl font-semibold">Přístup zamítnut</h1>
         <p className="text-gray-500 dark:text-gray-400">
-          Správa buildů je dostupná jen administrátorům.
+          Správa buildů je dostupná jen administrátorům nebo z povolené IP.
         </p>
         <Link
           href="/app"

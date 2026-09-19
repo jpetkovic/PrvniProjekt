@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
-import { getCurrentAdmin } from "@/lib/session";
+import { canManageBuilds } from "@/lib/session";
 
 export const runtime = "nodejs";
 
@@ -18,9 +18,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async () => {
-        const admin = await getCurrentAdmin();
-        if (!admin) {
-          throw new Error("Nahrávat smí jen administrátor");
+        if (!(await canManageBuilds())) {
+          throw new Error("Nahrávat smí jen administrátor nebo povolená IP");
         }
         return {
           allowedContentTypes: [

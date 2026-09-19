@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentAdmin } from "@/lib/session";
+import { canManageBuilds } from "@/lib/session";
 
 export const runtime = "nodejs";
 
@@ -12,10 +12,9 @@ export async function GET() {
   return NextResponse.json({ apps });
 }
 
-/** Create a build record — ADMIN only. */
+/** Create a build record — ADMIN or allowed IP only. */
 export async function POST(request: Request) {
-  const admin = await getCurrentAdmin();
-  if (!admin) {
+  if (!(await canManageBuilds())) {
     return NextResponse.json({ error: "Přístup zamítnut" }, { status: 403 });
   }
 
