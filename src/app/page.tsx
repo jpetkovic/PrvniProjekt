@@ -9,7 +9,9 @@ export const dynamic = "force-dynamic";
 const dateFmt = new Intl.DateTimeFormat("cs-CZ", { dateStyle: "long" });
 
 export default async function Home() {
-  const latest = await prisma.sbbApp.findFirst({ orderBy: { datum: "desc" } });
+  const latest = await prisma.sbbApp.findFirst({
+    orderBy: [{ datum: "desc" }, { id: "desc" }],
+  });
   const canUpload = (await getClientIp()) === BUILD_UPLOAD_IP;
 
   return (

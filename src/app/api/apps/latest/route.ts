@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const latest = await prisma.sbbApp.findFirst({
     where: { apkUrl: { not: null } },
-    orderBy: [{ versionCode: "desc" }, { datum: "desc" }],
+    orderBy: [{ datum: "desc" }, { id: "desc" }],
     select: {
       build: true,
       versionCode: true,
