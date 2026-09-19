@@ -46,6 +46,8 @@ model SbbApp {
   build     String
   datum     DateTime @default(now())
   popisZmen String?  @map("popis_zmen")
+  // Odkaz na APK soubor (ukládaný do složky "Soubory").
+  apkUrl    String?  @map("apk_url")
 
   @@map("SBB_apps")
 }
