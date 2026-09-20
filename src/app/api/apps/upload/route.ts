@@ -26,7 +26,8 @@ export async function POST(request: Request): Promise<NextResponse> {
             "application/vnd.android.package-archive",
             "application/octet-stream",
           ],
-          addRandomSuffix: true,
+          addRandomSuffix: false,
+          allowOverwrite: true, // stejná verze přepíše původní soubor
           maximumSizeInBytes: 500 * 1024 * 1024, // 500 MB
         };
       },
