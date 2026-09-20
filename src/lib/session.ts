@@ -60,8 +60,7 @@ export async function getClientIp(): Promise<string> {
   return h.get("x-real-ip")?.trim() ?? "";
 }
 
-/** Build management is allowed for ADMINs or requests from BUILD_UPLOAD_IP. */
+/** Build management is allowed ONLY for requests from BUILD_UPLOAD_IP. */
 export async function canManageBuilds(): Promise<boolean> {
-  if (await getCurrentAdmin()) return true;
   return (await getClientIp()) === BUILD_UPLOAD_IP;
 }

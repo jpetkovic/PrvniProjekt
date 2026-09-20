@@ -19,7 +19,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       request,
       onBeforeGenerateToken: async () => {
         if (!(await canManageBuilds())) {
-          throw new Error("Nahrávat smí jen administrátor nebo povolená IP");
+          throw new Error("Nahrávat lze jen z povolené IP adresy");
         }
         return {
           allowedContentTypes: [
