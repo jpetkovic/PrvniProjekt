@@ -67,9 +67,11 @@ export default function BuildsManager() {
     try {
       let apkUrl: string | null = null;
 
-      // 1) Upload the APK straight to Vercel Blob (into the "Soubory" folder).
+      // 1) Upload the APK straight to Vercel Blob (into the "Soubory" folder),
+      //    naming the file after the build version.
       if (file) {
-        const blob = await upload(`Soubory/${file.name}`, file, {
+        const safeBuild = (build || "app").trim().replace(/[^\w.\-]+/g, "_");
+        const blob = await upload(`Soubory/SBB-${safeBuild}.apk`, file, {
           access: "public",
           handleUploadUrl: "/api/apps/upload",
         });
