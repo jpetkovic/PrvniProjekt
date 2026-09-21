@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type User = { id: string; email: string; name: string | null; role: string };
 type Mode = "login" | "register";
 
 export default function AuthControls() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loaded, setLoaded] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -47,7 +49,10 @@ export default function AuthControls() {
       // Refresh the user after the Google login redirect.
       fetch("/api/auth/me")
         .then((r) => r.json())
-        .then((d) => setUser(d.user))
+        .then((d) => {
+          setUser(d.user);
+          router.refresh();
+        })
         .catch(() => {});
     } else if (login === "error") {
       setBanner("Přihlášení přes Google se nezdařilo, zkus to prosím znovu.");
@@ -114,6 +119,7 @@ export default function AuthControls() {
       closeDialog();
       setEmail("");
       setName("");
+      router.refresh();
     } catch {
       setError("Nelze se spojit se serverem");
     } finally {
@@ -124,6 +130,7 @@ export default function AuthControls() {
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
+    router.refresh();
   }
 
   if (!loaded) {

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { getClientIp, BUILD_UPLOAD_IP } from "@/lib/session";
+import { getCurrentUser } from "@/lib/session";
 import DownloadButton from "@/components/DownloadButton";
+import AuthControls from "@/components/AuthControls";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +13,8 @@ export default async function Home() {
   const latest = await prisma.sbbApp.findFirst({
     orderBy: [{ datum: "desc" }, { id: "desc" }],
   });
-  const canUpload = (await getClientIp()) === BUILD_UPLOAD_IP;
+  const user = await getCurrentUser();
+  const canUpload = user !== null;
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center gap-10 overflow-hidden p-8">
@@ -21,6 +23,11 @@ export default async function Home() {
         aria-hidden
         className="pointer-events-none absolute -top-40 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-indigo-500/20 via-sky-400/10 to-transparent blur-3xl"
       />
+
+      {/* Přihlášení vpravo nahoře */}
+      <div className="absolute right-6 top-6 z-20">
+        <AuthControls />
+      </div>
 
       <header className="z-10 text-center">
         <h1 className="text-6xl font-extrabold tracking-tight sm:text-7xl">

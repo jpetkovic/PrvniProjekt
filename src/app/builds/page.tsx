@@ -13,13 +13,13 @@ export default async function BuildsPage() {
       <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 p-8 text-center">
         <h1 className="text-2xl font-semibold">Přístup zamítnut</h1>
         <p className="text-gray-500 dark:text-gray-400">
-          Správa buildů je dostupná jen z povolené IP adresy.
+          Správa buildů je dostupná jen po přihlášení.
         </p>
         <Link
-          href="/app"
+          href="/"
           className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
         >
-          ← Zpět do aplikace
+          ← Zpět na úvod
         </Link>
       </main>
     );
@@ -30,10 +30,10 @@ export default async function BuildsPage() {
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Buildy aplikace</h1>
         <Link
-          href="/app"
+          href="/"
           className="rounded-full border border-black/10 px-4 py-1.5 text-sm transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/10"
         >
-          ← Aplikace
+          ← Úvod
         </Link>
       </div>
       <BuildsManager />
