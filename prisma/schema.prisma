@@ -52,3 +52,14 @@ model SbbApp {
 
   @@map("SBB_apps")
 }
+
+// Evidence stažení APK přes /api/apps/latest/download.
+model SbbDownload {
+  id             Int      @id @default(autoincrement())
+  ip             String?
+  datum          DateTime @default(now())
+  region         String?
+  androidVersion String?  @map("android_version")
+
+  @@map("SBB_downloads")
+}

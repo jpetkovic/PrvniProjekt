@@ -42,7 +42,7 @@ export default async function Home() {
         {latest?.apkUrl ? (
           <>
             <DownloadButton
-              url={latest.apkUrl}
+              url="/api/apps/latest/download"
               filename={`SBB-Counter-${latest.build}.apk`}
             />
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -59,12 +59,18 @@ export default async function Home() {
       </section>
 
       {canUpload && (
-        <div className="z-10">
+        <div className="z-10 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/builds"
             className="rounded-full border border-black/15 px-6 py-2.5 text-sm font-medium transition-colors hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
           >
             + Přidat APK
+          </Link>
+          <Link
+            href="/downloads"
+            className="rounded-full border border-black/15 px-6 py-2.5 text-sm font-medium transition-colors hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+          >
+            Downloads
           </Link>
         </div>
       )}
