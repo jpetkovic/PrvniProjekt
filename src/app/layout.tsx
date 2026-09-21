@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PrvniProjekt",
-  description: "Next.js + Prisma + Neon Postgres app, deployed on Vercel",
+  title: "SBB Counter",
+  description: "Simple body building counter",
 };
 
 export default function RootLayout({
