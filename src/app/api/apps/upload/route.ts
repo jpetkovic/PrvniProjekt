@@ -19,7 +19,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       request,
       onBeforeGenerateToken: async () => {
         if (!(await canManageBuilds())) {
-          throw new Error("Nahrávat lze jen po přihlášení");
+          throw new Error("Nahrávat smí jen administrátor");
         }
         return {
           allowedContentTypes: [

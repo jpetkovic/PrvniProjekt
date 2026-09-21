@@ -14,7 +14,7 @@ export default async function Home() {
     orderBy: [{ datum: "desc" }, { id: "desc" }],
   });
   const user = await getCurrentUser();
-  const canUpload = user !== null;
+  const canUpload = user?.role === "ADMIN";
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center gap-10 overflow-hidden p-8">

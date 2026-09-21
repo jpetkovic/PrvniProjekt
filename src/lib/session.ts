@@ -49,7 +49,7 @@ export async function getCurrentAdmin() {
   return user?.role === "ADMIN" ? user : null;
 }
 
-/** Build management is allowed for any signed-in user. */
+/** Build management is allowed only for signed-in ADMIN users. */
 export async function canManageBuilds(): Promise<boolean> {
-  return (await getCurrentUser()) !== null;
+  return (await getCurrentAdmin()) !== null;
 }
