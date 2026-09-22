@@ -5,10 +5,7 @@ import { getCurrentAdmin } from "@/lib/session";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const dateFmt = new Intl.DateTimeFormat("cs-CZ", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
+const dateFmt = new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium" });
 
 export default async function DownloadsPage() {
   const admin = await getCurrentAdmin();
@@ -30,9 +27,14 @@ export default async function DownloadsPage() {
     );
   }
 
-  const downloads = await prisma.sbbDownload.findMany({
-    orderBy: { datum: "desc" },
+  const groups = await prisma.sbbDownload.groupBy({
+    by: ["ip"],
+    _count: { _all: true },
+    _max: { datum: true },
+    orderBy: { _max: { datum: "desc" } },
   });
+
+  const totalDownloads = groups.reduce((sum, g) => sum + g._count._all, 0);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 p-8">
@@ -40,7 +42,7 @@ export default async function DownloadsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Stažení</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Celkem {downloads.length} stažení.
+            {groups.length} IP adres · celkem {totalDownloads} stažení.
           </p>
         </div>
         <Link
@@ -52,35 +54,33 @@ export default async function DownloadsPage() {
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-black/10 dark:border-white/15">
-        <table className="w-full min-w-[560px] text-left text-sm">
+        <table className="w-full min-w-[480px] text-left text-sm">
           <thead className="border-b border-black/10 bg-black/[.03] text-xs uppercase tracking-wide text-gray-500 dark:border-white/15 dark:bg-white/[.04] dark:text-gray-400">
             <tr>
               <th className="px-4 py-3 font-medium">IP adresa</th>
-              <th className="px-4 py-3 font-medium">Datum</th>
-              <th className="px-4 py-3 font-medium">Android</th>
-              <th className="px-4 py-3 font-medium">Region</th>
+              <th className="px-4 py-3 font-medium">Poslední stažení</th>
+              <th className="px-4 py-3 font-medium text-right">Počet stažení</th>
             </tr>
           </thead>
           <tbody>
-            {downloads.length === 0 && (
+            {groups.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-400">
+                <td colSpan={3} className="px-4 py-6 text-center text-gray-400">
                   Zatím žádná stažení.
                 </td>
               </tr>
             )}
-            {downloads.map((d) => (
+            {groups.map((g) => (
               <tr
-                key={d.id}
+                key={g.ip ?? "unknown"}
                 className="border-b border-black/5 last:border-0 dark:border-white/10"
               >
-                <td className="px-4 py-3 font-mono text-xs">{d.ip ?? "—"}</td>
+                <td className="px-4 py-3 font-mono text-xs">{g.ip ?? "—"}</td>
                 <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
-                  {dateFmt.format(new Date(d.datum))}
+                  {g._max.datum ? dateFmt.format(new Date(g._max.datum)) : "—"}
                 </td>
-                <td className="px-4 py-3">{d.androidVersion ?? "—"}</td>
-                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
-                  {d.region ?? "—"}
+                <td className="px-4 py-3 text-right font-medium">
+                  {g._count._all}
                 </td>
               </tr>
             ))}
