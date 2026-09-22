@@ -13,8 +13,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SBB Counter",
+  metadataBase: new URL("https://jpsoft.online"),
+  title: {
+    default: "SBB Counter",
+    template: "%s · SBB Counter",
+  },
   description: "Simple body building counter",
+  applicationName: "SBB Counter",
+  openGraph: {
+    type: "website",
+    siteName: "SBB Counter",
+    title: "SBB Counter",
+    description: "Simple body building counter",
+    url: "https://jpsoft.online",
+    locale: "cs_CZ",
+  },
+  twitter: {
+    card: "summary",
+    title: "SBB Counter",
+    description: "Simple body building counter",
+  },
 };
 
 export default function RootLayout({
