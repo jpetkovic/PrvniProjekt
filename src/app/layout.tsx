@@ -18,20 +18,23 @@ export const metadata: Metadata = {
     default: "SBB Counter",
     template: "%s · SBB Counter",
   },
-  description: "Simple body building counter",
+  description:
+    "SBB Counter – jednoduchá aplikace pro časování sérií a opakování při posilování. Evidence tréninků, tréninkové zátěže aj. Stáhni si ji zdarma pro Android.",
   applicationName: "SBB Counter",
   openGraph: {
     type: "website",
     siteName: "SBB Counter",
     title: "SBB Counter",
-    description: "Simple body building counter",
+    description:
+      "SBB Counter – jednoduchá aplikace pro časování sérií a opakování při posilování. Evidence tréninků, tréninkové zátěže aj. Stáhni si ji zdarma pro Android.",
     url: "https://jpsoft.online",
     locale: "cs_CZ",
   },
   twitter: {
     card: "summary",
     title: "SBB Counter",
-    description: "Simple body building counter",
+    description:
+      "SBB Counter – jednoduchá aplikace pro časování sérií a opakování při posilování. Evidence tréninků, tréninkové zátěže aj. Stáhni si ji zdarma pro Android.",
   },
 };
 
