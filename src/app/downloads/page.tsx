@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdmin } from "@/lib/session";
+import DownloadGroups, {
+  type DownloadGroup,
+} from "@/components/DownloadGroups";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const dateFmt = new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium" });
 
 export default async function DownloadsPage() {
   const admin = await getCurrentAdmin();
@@ -27,14 +28,31 @@ export default async function DownloadsPage() {
     );
   }
 
-  const groups = await prisma.sbbDownload.groupBy({
-    by: ["ip"],
-    _count: { _all: true },
-    _max: { datum: true },
-    orderBy: { _max: { datum: "desc" } },
+  // Načti všechna stažení (nejnovější první) a seskup je podle IP v paměti,
+  // ať můžeme každou skupinu rozbalit na jednotlivé záznamy.
+  const rows = await prisma.sbbDownload.findMany({
+    orderBy: { datum: "desc" },
   });
 
-  const totalDownloads = groups.reduce((sum, g) => sum + g._count._all, 0);
+  const byIp = new Map<string, DownloadGroup>();
+  for (const r of rows) {
+    const key = r.ip ?? "unknown";
+    let g = byIp.get(key);
+    if (!g) {
+      g = { ip: r.ip, count: 0, last: r.datum.toISOString(), items: [] };
+      byIp.set(key, g);
+    }
+    g.count += 1;
+    g.items.push({
+      id: r.id,
+      datum: r.datum.toISOString(),
+      androidVersion: r.androidVersion,
+      region: r.region,
+    });
+  }
+  // rows už jsou seřazené sestupně, takže první výskyt IP = její poslední stažení.
+  const groups = Array.from(byIp.values());
+  const totalDownloads = rows.length;
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 p-8">
@@ -53,40 +71,7 @@ export default async function DownloadsPage() {
         </Link>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-black/10 dark:border-white/15">
-        <table className="w-full min-w-[480px] text-left text-sm">
-          <thead className="border-b border-black/10 bg-black/[.03] text-xs uppercase tracking-wide text-gray-500 dark:border-white/15 dark:bg-white/[.04] dark:text-gray-400">
-            <tr>
-              <th className="px-4 py-3 font-medium">IP adresa</th>
-              <th className="px-4 py-3 font-medium">Poslední stažení</th>
-              <th className="px-4 py-3 font-medium text-right">Počet stažení</th>
-            </tr>
-          </thead>
-          <tbody>
-            {groups.length === 0 && (
-              <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-gray-400">
-                  Zatím žádná stažení.
-                </td>
-              </tr>
-            )}
-            {groups.map((g) => (
-              <tr
-                key={g.ip ?? "unknown"}
-                className="border-b border-black/5 last:border-0 dark:border-white/10"
-              >
-                <td className="px-4 py-3 font-mono text-xs">{g.ip ?? "—"}</td>
-                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
-                  {g._max.datum ? dateFmt.format(new Date(g._max.datum)) : "—"}
-                </td>
-                <td className="px-4 py-3 text-right font-medium">
-                  {g._count._all}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DownloadGroups groups={groups} />
     </main>
   );
 }
