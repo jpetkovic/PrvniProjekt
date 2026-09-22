@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import DownloadButton from "@/components/DownloadButton";
@@ -29,7 +30,15 @@ export default async function Home() {
         <AuthControls />
       </div>
 
-      <header className="z-10 text-center">
+      <header className="z-10 flex flex-col items-center text-center">
+        <Image
+          src="/sbb-logo.png"
+          alt="SBB Counter logo"
+          width={180}
+          height={180}
+          priority
+          className="mb-6 h-40 w-40 sm:h-44 sm:w-44"
+        />
         <h1 className="text-6xl font-extrabold tracking-tight sm:text-7xl">
           SBB Counter
         </h1>
