@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://jpsoft.online"),
+  metadataBase: new URL("https://www.jpsoft.online"),
   title: {
     default: "SBB Counter",
     template: "%s · SBB Counter",
@@ -21,20 +21,25 @@ export const metadata: Metadata = {
   description:
     "SBB Counter – jednoduchá aplikace pro časování sérií a opakování při posilování. Evidence tréninků, tréninkové zátěže aj. Stáhni si ji zdarma pro Android.",
   applicationName: "SBB Counter",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     type: "website",
     siteName: "SBB Counter",
     title: "SBB Counter",
     description:
       "SBB Counter – jednoduchá aplikace pro časování sérií a opakování při posilování. Evidence tréninků, tréninkové zátěže aj. Stáhni si ji zdarma pro Android.",
-    url: "https://jpsoft.online",
+    url: "https://www.jpsoft.online",
     locale: "cs_CZ",
+    images: [{ url: "/sbb-logo.png", width: 1024, height: 1024, alt: "SBB Counter" }],
   },
   twitter: {
     card: "summary",
     title: "SBB Counter",
     description:
       "SBB Counter – jednoduchá aplikace pro časování sérií a opakování při posilování. Evidence tréninků, tréninkové zátěže aj. Stáhni si ji zdarma pro Android.",
+    images: ["/sbb-logo.png"],
   },
 };
 

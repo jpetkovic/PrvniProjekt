@@ -4,6 +4,7 @@ import { getCurrentAdmin } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const metadata = { robots: { index: false, follow: false } };
 
 const dateFmt = new Intl.DateTimeFormat("cs-CZ", {
   dateStyle: "medium",

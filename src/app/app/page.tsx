@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+export const metadata = { robots: { index: false, follow: false } };
+
 // Stránka /app je dočasně znepřístupněná. Původní obsah je v historii gitu
 // (commit před tímto) — pro obnovení vrať původní verzi tohoto souboru.
 export default function AppPage() {

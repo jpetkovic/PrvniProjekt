@@ -17,8 +17,27 @@ export default async function Home() {
   const user = await getCurrentUser();
   const canUpload = user?.role === "ADMIN";
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "SBB Counter",
+    description:
+      "SBB Counter – jednoduchá aplikace pro časování sérií a opakování při posilování. Evidence tréninků, tréninkové zátěže aj.",
+    applicationCategory: "HealthApplication",
+    operatingSystem: "Android",
+    url: "https://www.jpsoft.online",
+    image: "https://www.jpsoft.online/sbb-logo.png",
+    downloadUrl: "https://www.jpsoft.online/api/apps/latest/download",
+    ...(latest?.build ? { softwareVersion: latest.build } : {}),
+    offers: { "@type": "Offer", price: "0", priceCurrency: "CZK" },
+  };
+
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center gap-10 overflow-hidden p-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* jemný dekorativní gradient v pozadí */}
       <div
         aria-hidden
